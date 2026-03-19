@@ -1,6 +1,5 @@
 from src.config import Config
-import requests
-import json
+import aiohttp
 
 class LLMQueryService: 
     def __init__(self, llm_config: Config, model: str = "nvidia/nemotron-3-nano-30b-a3b"):
@@ -12,7 +11,7 @@ class LLMQueryService:
         }
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
         
-    def proccess_query(self, system_prompt: str, user_prompt: str) -> str: 
+    async def proccess_query(self, system_prompt: str, user_prompt: str) -> str: 
         payload = {
             "model": self.model, 
             "messages": [
@@ -22,26 +21,21 @@ class LLMQueryService:
             "temperature": 0.2,  
             "max_tokens": 400
         }
-        try:
-            response = requests.post(
-                self.base_url,
-                headers=self.headers,
-                data=json.dumps(payload),
-                timeout=30
-            )
-            response.raise_for_status()
-            
-            result = response.json()
-            content = result['choices'][0]['message']['content']
-            
-            if content == None: 
-                content = None, 
-                error = "Модель не дала ответ"
-            else:
-                error = None    
-        
-        except Exception as e: 
-                content = None, 
-                error = f"Возникла ошибка {e}"
-        
-        return content, error
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.post(
+                    self.base_url,
+                    headers=self.headers,
+                    json=payload,
+                    timeout=30
+                ) as response:
+                    response.raise_for_status()
+                    result = await response.json()
+                    content = result['choices'][0]['message']['content']
+                    
+                    if content is None:
+                        return None, "Модель не дала ответ"
+                    return content, None
+                    
+            except Exception as e:
+                return None, f"Возникла ошибка {e}"
