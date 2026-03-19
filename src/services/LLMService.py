@@ -27,7 +27,7 @@ class LLMService:
     async def proccess_msg(self, msg: str) -> bool: 
         prompt = self.query_builder.build(msg)
         
-        response, error = self.query_service.proccess_query(prompt["system_prompt"], prompt["user_prompt"])
+        response, error = await self.query_service.proccess_query(prompt["system_prompt"], prompt["user_prompt"])
         
         return error if error else response
         
