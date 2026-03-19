@@ -13,7 +13,7 @@ git clone https://github.com/yshelev/analytics_lab2.git
 ```sh
 cd analytics_lab2
 ```
-3. Получить api key на сайте https://openrouter.ai/ 
+3. Получить api key для ллм на сайте https://openrouter.ai/ 
 4. Получить api key для бота у @BotFather
 5. Заполнить .env по примеру .env.example и положить его в корень проекта 
 6. Настроить виртуальное окружение 
