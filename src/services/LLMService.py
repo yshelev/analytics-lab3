@@ -11,7 +11,7 @@ class LLMService:
     
     def __init__(self):
         self.llm = ChatGroq(
-            temperature=0,
+            temperature=0.05,
             model_name=Config.MODEL,
             api_key=Config.GROQ_API_KEY,
         )
@@ -33,10 +33,11 @@ class LLMService:
         self.agent = create_pandas_dataframe_agent(
             self.llm,
             df,
-            agent_type="zero-shot-react-description",
+            agent_type="openai-tools",
             allow_dangerous_code=True,  
             prefix=self._build_prefix(context),
-            max_iterations=5,  
+            early_stopping_method="generate", 
+            max_iterations=10,  
             handle_parsing_errors=True,
         )
     
