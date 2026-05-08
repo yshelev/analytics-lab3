@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 import pandas as pd
 
-from src.services.LLMService import LLMService
-from src.config import Config
+from LLMService import LLMService
+from config import Config
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -19,12 +19,10 @@ async def cmd_start(message: Message):
     
 Отправь CSV или Excel — я загружу данные и подготовлю агента.
 После загрузки пиши запросы:
-• «Проведи полный EDA»
-• «Какие пропуски в колонке Age?»
-• «Найди корреляции»
-• «Топ-5 инсайдов»
-
-Агент сам пишет и выполняет Python-код!"""
+- «Проведи полный EDA»
+- «Какие пропуски в колонке Age?»
+- «Найди корреляции»
+- «Топ-5 инсайдов»"""
     await message.answer(welcome)
 
 @router.message(F.document)
@@ -59,8 +57,9 @@ async def handle_document(message: Message):
         user_agents[message.from_user.id] = agent
         
         await message.answer(
-            f"Данные загружены: {df.shape[0]} × {df.shape[1]}\n"
-            f"Колонки: <code>{', '.join(df.columns)}</code>\n\n"
+            f"Данные загружены: {df.shape[0]}x{df.shape[1]}\n"
+            f"Колонки:" 
+            f"```{', '.join(df.columns)}```\n\n"
             f"Агент готов! Пиши запрос для анализа.",
             parse_mode="HTML"
         )

@@ -3,12 +3,10 @@ import pandas as pd
 from langchain_groq import ChatGroq
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
-from src.config import Config
-from src import constants
+from config import Config
+import constants
 
 class LLMService:
-    """Сервис анализа данных через LangChain + Groq."""
-    
     def __init__(self):
         self.llm = ChatGroq(
             temperature=0.05,
@@ -19,7 +17,6 @@ class LLMService:
         self.current_df = None
     
     def _build_prefix(self, context: str = "") -> str:
-        """Собрать системный префикс для агента."""
         return constants.PREFIX_TEMPLATE.format(
             roles=constants.ROLES_AND_SAFETY,
             guide=constants.ANALYSIS_GUIDE,
@@ -27,7 +24,6 @@ class LLMService:
         )
     
     def init_agent(self, df: pd.DataFrame, context: str = ""):
-        """Инициализировать агента с новым датасетом."""
         self.current_df = df
         
         self.agent = create_pandas_dataframe_agent(
