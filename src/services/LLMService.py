@@ -1,33 +1,65 @@
-from src.services.LLMQueryService import LLMQueryService
-from src.services.LLMQueryBuilder import LLMQueryBuilder
-from src.config import Config
-from src.constants import user_prompt_base, system_prompt 
+import os
 import pandas as pd
-import json
+from langchain_groq import ChatGroq
+from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 
-class LLMService: 
-    query_service: LLMQueryService 
-    query_builder: LLMQueryBuilder
+from src.config import Config
+from src import constants
+
+class LLMService:
+    """Сервис анализа данных через LangChain + Groq."""
     
     def __init__(self):
-        self.input_filename = "data/input.csv"
-        self.output_filename = "data/output.csv"
-        
-        llm_config = Config()
-        
-        self.query_builder = LLMQueryBuilder(
-            system_prompt=system_prompt,
-            user_prompt_base=user_prompt_base
+        self.llm = ChatGroq(
+            temperature=0,
+            model_name=Config.MODEL,
+            api_key=Config.GROQ_API_KEY,
         )
-        
-        self.query_service = LLMQueryService(
-            llm_config=llm_config
+        self.agent = None
+        self.current_df = None
+    
+    def _build_prefix(self, context: str = "") -> str:
+        """Собрать системный префикс для агента."""
+        return constants.PREFIX_TEMPLATE.format(
+            roles=constants.ROLES_AND_SAFETY,
+            guide=constants.ANALYSIS_GUIDE,
+            context=context or "Проведи полный EDA анализ"
         )
     
-    async def proccess_msg(self, msg: str) -> bool: 
-        prompt = self.query_builder.build(msg)
+    def init_agent(self, df: pd.DataFrame, context: str = ""):
+        """Инициализировать агента с новым датасетом."""
+        self.current_df = df
         
-        response, error = await self.query_service.proccess_query(prompt["system_prompt"], prompt["user_prompt"])
+        self.agent = create_pandas_dataframe_agent(
+            self.llm,
+            df,
+            agent_type="zero-shot-react-description",
+            allow_dangerous_code=True,  
+            prefix=self._build_prefix(context),
+            max_iterations=5,  
+            handle_parsing_errors=True,
+        )
+    
+    async def analyze(self, query: str) -> dict:
+        if not self.agent:
+            return {
+                "output": "Агент не инициализирован. Сначала загрузите данные.",
+                "ok": False
+            }
         
-        return error if error else response
+        full_query = constants.USER_QUERY_TEMPLATE.format(query=query)
         
+        try:
+            result = self.agent.invoke({"input": full_query})
+            return {
+                "output": result.get("output", "Нет результата"),
+                "ok": True
+            }
+        except Exception as e:
+            return {
+                "output": f"Ошибка анализа: {str(e)}",
+                "ok": False
+            }
+    
+    async def proccess_msg(self, text: str) -> str:
+        return "Отправьте файл с данными для анализа"
