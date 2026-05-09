@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from langchain_groq import ChatGroq
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
@@ -57,6 +56,3 @@ class LLMService:
                 "output": f"Ошибка анализа: {str(e)}",
                 "ok": False
             }
-    
-    async def proccess_msg(self, text: str) -> str:
-        return "Отправьте файл с данными для анализа"

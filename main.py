@@ -4,8 +4,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
-from src.config import Config
-from src.handlers import router
+from config import Config
+from handlers import router
 
 logging.basicConfig(
     level=logging.INFO,

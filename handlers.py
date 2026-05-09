@@ -7,6 +7,7 @@ import pandas as pd
 
 from LLMService import LLMService
 from config import Config
+import constants
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -15,15 +16,7 @@ user_agents = {}
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    welcome = """ИИ-Аналитик данных (LangChain + Groq)
-    
-Отправь CSV или Excel — я загружу данные и подготовлю агента.
-После загрузки пиши запросы:
-- «Проведи полный EDA»
-- «Какие пропуски в колонке Age?»
-- «Найди корреляции»
-- «Топ-5 инсайдов»"""
-    await message.answer(welcome)
+    await message.answer(constants.WELCOME_TEXT)
 
 @router.message(F.document)
 async def handle_document(message: Message):
@@ -102,7 +95,3 @@ async def handle_query(message: Message):
     except Exception as e:
         logger.exception("Query error")
         await status.edit_text(f"Ошибка: {str(e)[:500]}")
-
-@router.message(CommandStart())
-async def reset_agent(message: Message):
-    user_agents.pop(message.from_user.id, None)
